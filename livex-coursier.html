@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>LIVREX — Coursier</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { width: 100%; height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; background: #F5F7FF; color: #0A0A0A; overflow: hidden; }
+.screen { display: none; position: fixed; inset: 0; flex-direction: column; background: #F5F7FF; overflow: hidden; }
+.screen.active { display: flex; }
+.sbar { background: #0f172a; padding: 14px 24px 8px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+.sbar-t { font-size: 15px; font-weight: 600; color: #fff; }
+.scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.scroll::-webkit-scrollbar { display: none; }
+.card { background: #fff; border-radius: 20px; box-shadow: 0 2px 16px rgba(20,50,168,0.06); border: 1px solid rgba(20,50,168,0.06); overflow: hidden; }
+.btn { width: 100%; border: none; border-radius: 16px; padding: 17px; font-size: 15px; font-weight: 700; font-family: inherit; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.18s; }
+.btn-blue { background: #0f172a; color: #fff; box-shadow: 0 6px 20px rgba(20,50,168,0.3); }
+.btn-blue:active { opacity: 0.88; }
+.btn-outline { background: transparent; border: 1.5px solid #E0E8FF; color: #9AA5BF; }
+.btn-green { background: #ECFDF5; color: #059669; border: 1.5px solid #A7F3D0; }
+.row { display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-bottom: 1px solid #F5F7FF; }
+.row:last-child { border-bottom: none; }
+.badge { font-size: 11px; font-weight: 700; border-radius: 20px; padding: 3px 10px; }
+.badge-green { background: #ECFDF5; color: #059669; }
+.badge-red { background: #FEF2F2; color: #DC2626; }
+.badge-blue { background: #EEF2FF; color: #0f172a; }
+.btm-fixed { background: #fff; border-top: 1px solid #EEF2FF; padding: 14px 20px 38px; flex-shrink: 0; box-shadow: 0 -4px 20px rgba(20,50,168,0.06); }
+/* SCREEN 1 */
+#s1 .hdr { background: #0f172a; padding: 8px 24px 24px; border-radius: 0 0 28px 28px; flex-shrink: 0; }
+.brand { display: flex; align-items: center; gap: 9px; }
+.brand-ic { width: 32px; height: 32px; border-radius: 8px; background: #fff; display: flex; align-items: center; justify-content: center; }
+.brand-name { font-size: 17px; font-weight: 800; color: #fff; letter-spacing: 3px; }
+.earn-strip { display: flex; gap: 10px; margin: 16px 20px 0; flex-shrink: 0; }
+.earn-card { flex: 1; background: #fff; border-radius: 16px; padding: 14px 16px; box-shadow: 0 2px 12px rgba(20,50,168,0.07); border: 1px solid rgba(20,50,168,0.06); }
+.earn-lbl { font-size: 10px; font-weight: 700; color: #9AA5BF; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+.earn-val { font-size: 20px; font-weight: 800; color: #0A0A0A; }
+.status-toggle { margin: 16px 20px 0; background: #fff; border-radius: 18px; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 12px rgba(20,50,168,0.07); border: 1px solid rgba(20,50,168,0.06); flex-shrink: 0; }
+.s-dot { width: 10px; height: 10px; border-radius: 50%; background: #4ADE80; }
+.toggle { width: 50px; height: 28px; border-radius: 14px; background: #4ADE80; border: none; cursor: pointer; position: relative; transition: background 0.3s; flex-shrink: 0; }
+.toggle.off { background: #E5E7EB; }
+.toggle-thumb { width: 22px; height: 22px; border-radius: 50%; background: #fff; position: absolute; top: 3px; left: 25px; transition: left 0.3s; box-shadow: 0 1px 4px rgba(0,0,0,0.15); }
+.toggle.off .toggle-thumb { left: 3px; }
+.order-alert { margin: 16px 20px 0; background: #0f172a; border-radius: 20px; padding: 16px 18px; display: flex; align-items: center; gap: 14px; cursor: pointer; box-shadow: 0 6px 24px rgba(20,50,168,0.3); flex-shrink: 0; animation: alertBounce 0.5s cubic-bezier(0.34,1.56,0.64,1); }
+@keyframes alertBounce { from{transform:translateY(-10px);opacity:0} to{transform:translateY(0);opacity:1} }
+.order-alert.hidden { display: none; }
+.alert-ic { width: 44px; height: 44px; border-radius: 12px; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.alert-title { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 3px; }
+.alert-sub { font-size: 12px; color: rgba(255,255,255,0.7); }
+.no-order { margin: 16px 20px 0; background: #fff; border-radius: 20px; padding: 28px 20px; text-align: center; box-shadow: 0 2px 12px rgba(20,50,168,0.06); border: 1px solid rgba(20,50,168,0.06); flex-shrink: 0; }
+.refresh-sm { display: flex; align-items: center; gap: 6px; background: #EEF2FF; border: none; border-radius: 10px; padding: 9px 16px; font-size: 13px; font-weight: 600; color: #0f172a; font-family: inherit; cursor: pointer; margin: 12px auto 0; }
+/* SCREEN 3 */
+.check-card { background: #fff; border-radius: 20px; overflow: hidden; box-shadow: 0 2px 16px rgba(20,50,168,0.06); border: 1px solid rgba(20,50,168,0.06); }
+.check-row { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-bottom: 1px solid #F5F7FF; cursor: pointer; user-select: none; transition: background 0.12s; }
+.check-row:last-child { border-bottom: none; }
+.check-row:active { background: #FAFBFF; }
+.check-toggle { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; border: 2px solid #E0E8FF; background: #F5F7FF; }
+.check-toggle.on { background: #0f172a; border-color: #0f172a; }
+.check-toggle.off { background: #FEF2F2; border-color: #FECACA; }
+.check-name { font-size: 15px; font-weight: 500; color: #0A0A0A; flex: 1; }
+.check-name.crossed { text-decoration: line-through; color: #9AA5BF; }
+.prog-bar { background: #EEF2FF; border-radius: 14px; padding: 12px 18px; display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.prog-track { flex: 1; height: 6px; background: #D6E0FF; border-radius: 3px; overflow: hidden; }
+.prog-fill { height: 100%; background: #0f172a; border-radius: 3px; transition: width 0.4s ease; }
+.prog-txt { font-size: 12px; font-weight: 700; color: #0f172a; white-space: nowrap; }
+/* SCREEN 4 */
+.waiting-ring { width: 64px; height: 64px; border-radius: 50%; border: 4px solid #EEF2FF; border-top-color: #0f172a; animation: spin 1.2s linear infinite; margin: 0 auto 14px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+/* SCREEN 5 */
+.earn-big { text-align: center; background: #0f172a; border-radius: 20px; padding: 20px; margin-bottom: 14px; box-shadow: 0 6px 24px rgba(20,50,168,0.25); }
+.earn-big-val { font-size: 36px; font-weight: 900; color: #fff; }
+.earn-big-lbl { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.6); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+.earn-big-sub { font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 4px; }
+.c-row { display: flex; justify-content: space-between; align-items: center; padding: 13px 18px; border-bottom: 1px solid #F5F7FF; }
+.c-row:last-child { border-bottom: none; }
+.c-l { font-size: 13px; color: #9AA5BF; }
+.c-r { font-size: 14px; font-weight: 700; color: #0A0A0A; }
+.c-r.blue { color: #0f172a; }
+.c-r.green { color: #059669; }
+.hist-row { display: flex; align-items: center; justify-content: space-between; padding: 13px 18px; border-bottom: 1px solid #F5F7FF; }
+.hist-row:last-child { border-bottom: none; }
+.hist-store { font-size: 14px; font-weight: 600; color: #0A0A0A; }
+.hist-time { font-size: 11px; color: #9AA5BF; margin-top: 2px; }
+.hist-earn { font-size: 14px; font-weight: 700; color: #059669; }
+</style>
+</head>
+<body>
+
+<!-- SCREEN 1 — DASHBOARD -->
+<div class="screen active" id="s1">
+ <div class="sbar"><span class="sbar-t" id="clk1">9:41</span></div>
+ <div class="hdr">
+ <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+ <div class="brand">
+ <div class="brand-ic" style="overflow:hidden;border-radius:8px;"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAIAAAABc2X6AAABCGlDQ1BJQ0MgUHJvZmlsZQAAeJxjYGA8wQAELAYMDLl5JUVB7k4KEZFRCuwPGBiBEAwSk4sLGHADoKpv1yBqL+viUYcLcKakFicD6Q9ArFIEtBxopAiQLZIOYWuA2EkQtg2IXV5SUAJkB4DYRSFBzkB2CpCtkY7ETkJiJxcUgdT3ANk2uTmlyQh3M/Ck5oUGA2kOIJZhKGYIYnBncAL5H6IkfxEDg8VXBgbmCQixpJkMDNtbGRgkbiHEVBYwMPC3MDBsO48QQ4RJQWJRIliIBYiZ0tIYGD4tZ2DgjWRgEL7AwMAVDQsIHG5TALvNnSEfCNMZchhSgSKeDHkMyQx6QJYRgwGDIYMZAKbWPz9HbOBQAAAlFklEQVR4nIV8eZxdVbH1qtrn3Klvz53uzgAhCSAIMvsAgTCogARw5Ak8HoID4IvIAxQBZRAQQcGPIYIgCIIDTqCCECYVE6YwGAYZBEHQJD3Pfe/te86u+v7Ye597g5+/7/5ISHefYQ9Vq1atqt2kqqqKpo/7kpkBrH/+pdUPPvrYE+tfff3tscnpVMBQhhJAUABKIABE2UMIgEIJ//ohhSUSAKpE7j6wKvnbiaAAgaAgUWWQ+hcpgdQ/G+5vVfdImIi628vvWrbl+/be7eCD9t5153cDEBFVdbPwb3dvFN1sbNaKMQzgvgceuf6mnz++bv30bI1NlI/jKDJuQgyoKilAqoAARER+qgpAwgtUldybVN0LBUgVEBARSJmIQYC6eSgEgBKpAgSjUPccuIugALlrCQRSKIFEtZ7YepLYVNpaCnvvufPKz/3nhw5eDsBaa4zZfNGbtjdNbRSZN9/655nnXH736jWRiVrLLRGTAiqqcP+5oRJUhCDhrW6vAFhVBZgJAClxWE5VACqAuEUAwDCarYv6ZSQVIlL3Fm8pbjVV/ZxFlbMlDotLRCBOrUxNz4hNVxy8z/+57KylS7Z0k8qMtzFh94PVD675zKkXDo9MzOtsV4W1VhUEUtLwRiIwKQRWibTplQyFqlW/B0xkKNikqqgKAGI3O2IwgVSJOBuDeJcAg6CkJG5vGaSqAg62rc4wmdzO+wXxi8OkwNjYZG9P203XXrDi0AOyOTcm7L51x6/uPeGU8wulYrmQT+qptzM3BFL34LCspCogIfdHM/+DKgRQkAH8gqi3WnW77haPHBwAYL/4fsgE9QagEGqMAKrevd3KqIJJ/Vb4ifvFVlAUmWp1rlar3Hr9xccctcJN0E/Y+e39Dz165DFfbGttjQ1ba4NLOn+B20xSD1IKgjqL5jCigCHZuAFV4WB34nZDlQAFC8F5YXaBe5MqFMrKAhCpd3//Y+fPJFDS8BUU6hZcgo/7kbNhUTszPXPXT6760Af3s1bYEFlriejtf2zc6wPHV2v1Yj4WK24D3aa5xSOFMkGFJNu4sPDOIx0+AQLvA27TMzDXgEwAaXBA8tOAqgdPUhICZ3DnFsBDFAVb8Xc5xOLG9wLIqXN2ZcP1elLKR48+ePtWixepKiuUiE4/59sjYxMthZxNbUDEJlOCtzACK/tBuk2TbNIBpEkdghL8EFmJASJlApNzdheM/JwC7oaHeDNRChEwvCEYQIYbzpiCE3n3yKwSQJpIIV8YHps649wrXFhiw+bBhx/97X2P9HR1pEmKEBsy44Eq+xGo+njUiIfuvW5mAIMIZAB2+E+U+T1FUcTGKFhUiSiOImMYBPFYRQCTNnurCyEkYL/ajQjqB+SMabMFQOMrFzuSJO3u6rp79ZoHHn6UmVlVV33/ZyaKVDQYsINVKCmB4bHR/4jCtBhkQAwi0TACQdPqZmHZmCixMjQ6Pjo5lYolw9Xa3ODw6OT0DDEREfsICwDO2ikgL0HJTd6vHIWJOcIkfnv8CDWbsmMwTMREUI2NufbGO1SVXnzptf0P+wwxk5J6vqOKxri9yxIJiFWylaRsZX20QgAsykgTg9iY4bGJ+X3dR33k4AOX77HV4oX5XG5kZPzZ9S/9+t5H1jy+vljI53ORpCmYvbe6VSNWB+1EgIoPBR4LvbGx5zzatGBZpMoswTm1qjxy7w+i+x5YMzNb62hvtamlJkOBkoNUt6TiIdrhoxuVUhZmSZXIM04/W2UATKMTUycce8T5Xzlpi0ULMmvbZtnivffcZeXJx/zqNw+ffs63xiamWltK1lrA36gBhoiaApMG/3Y/4jBDqKoztozXUjBvBamC2JiJial7H1wbPbL2KROxqnjSFdZQgx2DVBzqBuTwfAsqKghxidQvliNNpMSGB0fHLvrqF776pZMAzM3NPfT7x//8wl9nZ2e3WrzwAwfstWzplh//8Ae2f9eSI4/+4vDoRCGfgxVvt6pNu03umW6EYdtDOFMVh5JuoD4waBYqyV8rURSveexZ2na3wwdHxvNxrCLq3+QmKlDKeCxlARiAskItLAFM7IkviNSxRoUiiuLhsalPHXPYTasuArDumRdPO+vyp//8FytCDIC6OztOOfHjXz3rpHwut+6ZFz/4kZPzcUTg4E3NlJd8VHOYEAKId+1wiXOmbGOCmUChhkBEc0na19tNfdsclKYpE4n6PEUhDSIBUoC1sVgh0DswV/Z+xW6tyRMCTlPbUi49/chPe+d1PfnU84cddWq1Vm9vLYsKoMyUJOnowPDKlcdd++1ziOiMsy+/5nt39PZ2pzZ169aMu36H3cwkLL8Gs/X2S248TaDVcA23WGSY09S64OCWkQACsxKBsu8AALF6hMzQN7hMhg6eTpAxZnxq6qgPv793Xle1Vjv1rMtmZytd7S02rVtrrbX1JAVR/xYLr//Bnfes/pOIfuZTH+/sbE9smqQ2RAMg7CGpez07o/Ng4S9pgGeD2XsT9fMUVRFVwKY+5dQG4CDAvzaCQfbjENaV2fEGCq9VkHjeoSqgKM4ddMCeqvrImqfXv/BaV2dbPUm8CSGYnSKOohtv+QURtt926cKFPeMTE8uWblkslVKrSuSeGZ7/jrTdOV82WwoG2PS1n4lLpDy4cgPLGkZPSo48cwiHHo88gHO2oeweCH+xI2OcpGm5tbx0yRZE9OQzL6bWugcGIPE7YUWKhfzLr/6diK67+ecvPPfqTjtss9+e7xkdnYzjyDusH0lg8U1TQqBozR/J9jaLy6QEYmK4EBCs0g8jcCq/W+QJCEiFHAY7ruhIj/rLmcBEhomZDDMBuVxULOQBTE3PMIMAxwEiooiJmZjJkd5Sqfjb3/3hgkuvyxWKF5698pn1r6gKERkiQ8QgJmZ3A7w1Z3sYiJA3T/aZV7AJF1oFCnH2oKoRe1hGxpk1s22FQ2QQSLjB6zw98VqHiNYqcyE19d9JrFirAFIrtlKvVBObWo8zgdkQUZramdnauRdfP7Zh8NLLz+rqbF/7+HOdnW0zs1U/dBVPOQiFXMwEqLMVDQNSaJbOBGMOMyI0EhCAIuKI2ATnyGQmdy2FsBuoj8N+ImS+pbCihXxhqy0XUeC1RCyiURzlcjGABb09222/dUd7WyrirSzLB8RGcfT3DUMbBkb3Oeh955zxmU8cdyaZaH7fvGIuEnhW6LkMmY1Dw9VqzbAhKEFciuan1bztCpB4/1YYUjUNc6TepQeKYxbqIjs7dJYAkS5hD+KGKjEplFQUhs34xOSHP7T/z2/7tk1tQ84BCGQiBiBWVaURO+Gjdmoln8/dcttdK8+4tNze/sTDPzSMHff8RKFYfPSBW5YtWWStzSQ4VTXGfPKEL//2vrWdHW2ptQTLGp7ViM2B43o8I1JIww0I0MhJlP5eDejsISKIL+zBzDlzoFUgQqq6cFE/M1OuabpNHzbU7FnZx0R46dU3zr3ku9VqddV3zl261cKvXXzdzPD4kSccsO3WiwE0i2+Oxi5a2C9iXVYaACnsKsK0vSgRjIg2238VioLVbk5Tybmogl1OJs4T3OPV6TPkidiC+b2qeOWvb3zhy9+K4xhAKjaXi2+6+rwF/T3X3vizn/1ydVt72VpxXCkgIjZuGhrYOHTiCZ/49PEfHR+f/OXdD3FLy+dO+Pjk1PRRx58tUMOsqmmSfPfKr2y37bKFC3pFrUsWCD4Vd6lrcEP1UWOzfKZJEiCNHDVupFXNtBtBugsLRKRCIUq5CZPO62knwt/f2vD7+9cUu9sBWGujyFSqVQB/ff3vjz6yrtzTmaapZnEAZJislZ122v47l56pqvc9uPbV51/Zc9/37r/P7m//c9Nj69YnSeoE4+rk9Nv/GNj+Xcu6utqgmkl3/I6wHP5BWc6DIJsHhgggUvVc2DmagyTn0pku52k7WBkB8pzBI2Izr6sDwNj4dFQudbaVrbXWSpzPE0hECoV83NrS2lJKbOJ4EsFnOjMzM9+76tyO9lYAt9/xO1jZ+73vVtU0te2t5Xq9zoaZOUntyNgUgL6ebmNyItK0BwjuGhhSQAr3Q5dwKgJIKUUO5X0O7/k4K+DJNfy8A9F29gGGCkFVCoVCf28PgE1DI1ZERNPUimgkUizmmdkwW6uiIjbLSxHHPDg0duUl/7v3f+wsouufe+Wxp/5CreU4l2fmYiFvRVJrWTWKKE2SDZsGAfT39RQLeSspNSKIhx4nf5JmaVtjz8PfLstC5HMQFy6C8EYZSdRm6bBJFwczqaRpa7nUO68LwIZNA+QtiIkkqddPOPm8UrH42htvt5aLaWpBIIYqxcaMjI4dfsi+Z5z630mSxnF0y49/MzNT6exou2f12pdferNaqyVpSo4bkYKwaXAEQE9ne0tLXJtLjDFB2vOZY0YBghKY5XVuvCzqdasoKPgKP0+X4UmmRzkpixylyZ4AJbC1SWtrsaOjDcDA4KgxJN7HSaFrn1gvqvlcLpeL3fdVlZmqc3Pz++d976pzRTWKzMjo+F13P9zWWjRMb2/Y9NobbxvillLB76KoiaKhoTEA7R2tba3l2cqo4cglbw10ybaR2Ce0DbHI/cRRHopcoYM5uIO3C3bzE48MnOlKGp4AQmKls6ujtVwCMDQ8YUwsokF9pPbWskKtqKo6ec6lOrOzsz+96dKFC/rm5ur5fO4Xv35ow+BoX29XmthCnCsVCgSIOHUBqshF8eDQGIC2ttau7u5/bBjJ5zJipU0OCwIgPnFuwFij9ENQJ5dCICoiIcFTl6eA4Egy+bsEvljhwJ+T1Pb19jBzrTY3PDwex3HIrQBFYm1qJaNxCoqjeHhk4sxTjz/skP3SNM3l4jRNb//pPaVSIXATqKiIgsDkVhmRMUPDY9VqlYn65nUnSRrKcooQUgO2oEkiyAgm1F2rDCIGRH3KT25YrNklPntSgYiKQCzEqli1FgCsTft6OgFMTExPTEz6mlXQ2jIK5NzBmHh8fGqfvXa5+GsrrfUetfbx9U+vf7mtpagiFFQqH0jDiI3hicmpickZAH3zOkVS/3yXnWlYzvDfZh8NoSnIXC7TC3EaUMCCpJFcOnYMNkFOa+yDWJH+ni4A45PT05WqYRKXGKufNFFDbk/SpKVc+v7V5+fiGO6hwA9u/w2yXCfQhqY46kglT1eq45PTAOb3drlA49VDgpJkaxTkKHJUOwgAPjFVCEjZp+SiTSmEghro5KZuCMxgA2anD8I9o7+/B8DI2MTcXMJMGh7kKj0aKmUm4vGJiSu/cfp22y5JU0sEY3jTwPCDf3y8u7OdidgYE5koYmOandLl11yrzo2MTADo6+tGIIyKQCbC/4OIISDH/VXhtBJfjQU0CimSAhARYyiskjaF9BCj1cdjMsRMURS5CQ8MDltrmckKXFgKhSUCEEdmcGT0U8d++FPHHJmm1hi2Vpjxne/+eOC1t3I9XTZN1a+uMnNHWxucCulmQZSk6abBIQDz+3uiiCGBXRAF2ggKWl9mmMFk2RmzI1uRmxEb8r7mc/qgpjckHAUoSIEuXEkuH/f1dgEYGBwVKwB7hwjWTwo2PDNb2W7bra765pdE1BXKjTGqumzJwq9dfEY+H4kIgUSF2UxNzdx8+69NZCi8lllV7KaBYQD9fT25XE58CZIapk+OTHl5hBDM09XaA4cENPLiuiigZMKioLnkEjY3UGFHT6xIqZjv6e4EsHHT8GZgoV7jBUHEWshN117Y3ta6eQMCnfLpo/Avn9PPvqJSnetoL4u1Kpo1U2wcGAHQ09VZLBTEWsOGm0fkXrt5vqYOer0s737K3BDQ4ehiUzx3hTNf2HDrrZ5/KRzN6vSsY4QamiY5MV4VxsRDoxMXnn3KXnvslCQpMzfSJdU0tUmSpmmapGm1Ngfgmut/ctU1t3a41MoHGIEoEQ0MjgLobG9tK5cSawOjUlJXuQNUSZQVJJqJYA63HbK4KbA3PCb29znrlazrwl0njtqQ1zqUkFjb0VZuby0DGBqdMCYkz6FMEJloeGTsiMMOPPMLx7vZ+rUK+GgMR5GJooiIioX8E089d+4lq3rm91hJFUHTBwTKkRkanQDQ1lbu7ChbazOTU4JX25AJ1eq6K5rSA6fgkQgxQsUWGSYzBQbiZYN3WB0xEXNqpburPY4jERkdn4jjKKM5YGWmam1uq8ULfrDqfCKO48gYZmYmYqffhY+IGuax8ckT/+cCgo1M4ETeKVSguTgaHZtMrY2iaF5PV+rLYFBSIYWvIboOIL8jfjAhAhORo26RpxZN9CTLnSm4Om0uCiuEYGxqe/t6AExOTY+PTUYmavIoAtFcPbngKycbEw0MDrvMFiBXDezp6QpOoyISReaU0y95/c1/zOvuSNO0ERHC+4wxo+MTE5PTPV0d/f291gqIpKnfAQAggAiImL1CRRBXbA0aBlSjkCKHYiABMM6EmwocjkRAIRz2OLWycEEfgLGxycnJ6SgyoTasUBKrrS3FC7953VcvupbZr2IURSMjY5867shrLj/bAZi1NoqiK1fd/ou77l8wvzdJbKPUEeKNu3F6anZsbKKnq6O3t9uK+MTOR9+sKYFCTxBnaqEjHlkpKiLnoZ5vkM9BsgAlHgIJrK5U5QKsAir9vV0AhkfGZmarLS0tIpYCH3C56uj4VBDimECKai21xx61ws3Imegf1zx13jdW9fV2J0kaQon4VQ0mZgzPzFRHRie23Rr9vT1Zeg8n5bmA7LckWKpPAAKA+7+VCV7Xo5DXNVbYmYOERgvnKKoOJ4ipr7sLwODweG0uCZKlC3neOOIoMoYiwzEjF5tqtbbvnu/Za4/3uFU3zANDI5899etRZBQQVVGrGtZYQ2IOZaJ6kgyNjAPon9fJnA2Txdc0fATNxg7lwD18Q6CKiFUWJSCCcigUuQs1dF4wc5ZWBGqiakUjw73zOgEMj06KiB+j31919S9XioTfBKkn6YnHfQxAaq2oAvjcF7/+9oaBcqlkrc2EGm+dAS/cQ63YweExAH3zuuI4ciGWsp3LADlM34VQagC3vzRII+TrRo6+OCD2z2pOI8ItIlIsFOb1dAIYGBwiRiBYFN6fNSJBADBXqrVlSxZ85LAD3FMjY75xxfd/t3pNT1d7mnoJ2rcvUFavVV8KgwLYNDgMYF5PV7GQE7VNexCwA9n7EWS7Bi0nIjDYJZbOeCECUlFBU77ScAH1vsHMIlout3R3dwLYsHGQ2YVC4cyi/Fs8cDDT9Gz1Pz92aLlcmpurx3G0+uG1F3/rhr55nUmawtd+oC6L8gEicz2AwET/3DgAoKens7W1JU2TbHDUGJyPEJopsY100QXYkPg0tlKUVUkFIsG2feVQ4MM5E6WJtLe1dnW2AxgcHDFsMiTLLBvw0ODq4x1trScee6Sq5nLxP/656aQvXlQs5n3ar07faJCS8H/2T1IxTEODIwA6O9o62lpTmwa9eLNCkZsJB8jOQpCIqIqr+7lrHDRrKOczwfVMKPv7XVuZW0USm3Z2lEvFAoCRsUkTGUBDwQd+WWAAA2XDZmqqcvCBey1bsoUVsdaeuPL8oZGJYqEoIgCsS4c91JLr/gEaDXXiQvHolKrmc7mO9pY0tQ1jDvYXBAANEyFkDIK8wwW8CyHIJ9Uh4bSuROj0QNcmoyBABC5tqFZrYxOzkTGu3Swwas6W1s+ezWeO/6iIRMacf+n1D/9xXWd7OUnrzioMuX50vzEOJ8PHNVOoMdHEdKVSrQGY191prTS4SVPo8Tqwc1r17IKI2LVsgSOozfDI9+d47TKofxTIWHAHgaZiF87vBTA6MTk5PZOLcy77d8Urj/kMESXimdnqLjtvu/++uzPznXc/dOW1ty7on5dKGhnjAg+5vQmJrV84X5UlQIk4n8P07Mz4xFRLqTi/v09EfNYW1pSUmvkgiSI0rrK3YyJF1Cz7OVPg4FcEeNWmwWbcfWxFnBw9ODgyODRULBQ08RFECV75U7AxpWKhUqkc/bEP5uLca397+wtfuiyOzExlNstMvJTe5PQO3gVKxEHlYihmhscGhkYXLejr7+0SkSBdNCKZqjNFkqw/zV8QHJcQNToR1GuFUOs9GgjkLbsHmT84mlWtzm29ZMtyuUWcr6k6hqRQUqrV7YaNg/P7e/7zo4fW5uY+vfK8waGJbbZe1NJShA/7fqKbD418vZ6cx6kqmLlSq9Xm5gD09fUwm82GFHK4RnxoMC3K2KQCEStJ6DWEG6jfzYb45TW5UINTlTiKFi2aLyLv3e09zz/2ixCAGiOw1uZz8WnnfPua79x63OknLOifd9pXLlv78OPv3m2H1Xd+r7+v23vX5oMOuce/+6gVFZFFC/rjOFbXh9boCfdiQehZzDIf+LRJVVUjydgvZdofh/ViX4RSEYRqFJEViWNettVCZs7n/x+1XwCupPDLux7KtZXOXPlf99z/p2uv/+n8rRbedsMlWyzs+/dT+v98IgDAVosX5uJIrCo4NF6EknVIE9wfl9DY0MsNUORbYQiuTs9eAgrCkDrMzRqI4fY8F5tTv3xpqVh0PbjOmgLEibPr8cmZjYPDH1mxXEROPOW8tva2Ukvpm1fcWKsnvFmO7YPdZlbmDJnCk71DehSbqVTjqGHS2akXdUKeiDjljlTDYQGX84gq9S1d7kmFKhGbjC8HyiIc7CJzfRAIs7NVcSVu8cUnalojQPO53Fzd/uC7F9z6o1//Yc1T3V2dc/VktlJhIoWP6ZpxwqaeK891/LcUcDaalXOViMotLZQR2JD2hNn7xztvdP0CDHIAE/nsRl0LCTvVHL5Y3+gBRHCCMCxuay2HAWaJcGNRiKhSqe204zYP/uHJP6x9pru7M03TOObOjtawLdSE/Bqooa/yqPhoQRm+qm9NJydwSKjNuFM9YSUUSsS+8Tdotq7J2B/76l22v4bkUZ2qlz1JvWTjE6lQV3KsiA0TuQNgYcoEZqOq7hxFkqa93R1jE7PGcAb5IgKfV3vIkExVhkJhiMBklUSsIWZigfXbqJaIDBtRtWLDaiOjsC41YhBCX7dk2xVyqMi9XUJc0OCsFFJjch2bmtmcqyDr1NSsiLaWS2xIRBxhrlRmiVEulaEUsRkdnyTimZnaXD1RlVycK7cUjTFikaR2tlol1ZaWoiEW52fMlTStVaomisrl0uxsJamn+XxUKuUdMtSTtFarMlNLKR9oY3bUxhcqguLYGLL42EqqiCSz1yb7bOQfSq5Y5JVI91i1VmmfvXZubSk9+exLlUoll4vrddvf1/Pudy2empp59rm/EpEx0eT0VKmY23+fXbfZegkRvfb6m+ue/cvUdK2lVOjpan//jrsnabLuz68mtbrbgXo9WTC/d/tttqhUa4899Zddd9qut7vt7Q2Df3tzQy4X1efm+vt6d3jX4tlK9ZnnXiHKRF+nGXCADxIOwk3WkePsAIicIXGG5k1zp8bMG7N1MlySJNddee42yxbfefdDR3/67FKxZbwy9r49d7r52gtf/9tbu+9/dL5QmJia2W+f3a+4+H932XG7DAlefPn1cy767n0PrOloL33/mgs6O9pWfvmyG2+5s6erXVUrk5XLL/ifD6846NYf/eaBXz907s3fOOzg/a676Y6VX/rmFgv7x0fHl39k5xuvufCNN/+5x4HHRpGnFE1oGpq8gQa2NwRzAOEMnzjg8ADsJ+7MwQds9xEr1ooKSOfqiYh87IgPfPuiM4ZGx8iY1IqIVKo1E8XTs7N77LrtPXdcvcuO2z325J9PP+ey08+5/LEn1++4/dZ33vat5e/b9fXnX7np9rsUOPGYw3MxKbRSndv5Pdse+sF9K9Xaqpt+gUK+Uq2KSL2ekC/bk3vFbKXaCGEO6hwI+QRVfOKk4lTebM8AsIjn0F738dGPIJoBghIpuTSRySOYE6cZwGmfP3bl546qD4/lcvlMek5Fzz/r5EI+f8/9fzroyJOvvuGnV9/wkwOP+Oxv7/1DHMfnnXVSXG796a8eqFSqu++6w/J9dp+ZrVRq1f8+5vB8LnfP6j8+/+LL+bYyBRHbozGR05zYtVw6SGqkf2jKncTVvLXJVz2sviO/QAgRAbf9da5kAQLYHaJ0R12x/vmXAVxx8Rl7H7Tn8MiYQ75atbrFgt693ruLql517W2iuqC/b35fr6qu+t6PVXWP3XZYut2S9U8/d8/qR4jos8d/fHa2smh+z9EfPRjArT++O85F0BTNH6LNjTdEa585h3Oabr9EXRbmN10JYNeZxXEuay4NQCeBzANeYLLqDvC4kptLd20qAC6/+tbvfv+OyJjbbvzGLjtuA4CJxUqpWCoWC0Q0OTVVLMRJkiZJms/nJiZnXWGlFEcg/uFPfgvg8EP27e/tOvj9+/T19jzx1HOPPPpMR1urTVM3MAnnnpmCfuqSTw0HDsgnZw6ls7J4qGT7pEoVxkTc2d6WppYCIyZ48uxLZj6B8SdXfCxTzXoiisXC/55+8bpnXth6yRZfOe0E94R8Lj86OrFpYEhE9t5rt6nRaSIwY2Zsco/ddxCRgU1DA4Mjnd1dax5/bt3TL+Tz+dM+/1/Hf/JwADfc/LPa3BwxK1yDl7YUC7ZaY47q1Xo+jlR1rp4kaepBJtPCguMGCoPQJwAmZWhq0/b2Mi/bcoHTh9wNCgiTX8KsFMGaaRkeH0gd3YmMscrHnXTePzYMFIsFERHVXC43ODT0i1/fz8xf/fJJh63Yv1KtVWv1FYcf+LWzTmbmX939+8HhsWIpX6vVbrz1lwBO+/xxe//Hzhs2Dt33+yc7OtrECoj+/PwrTLTikOX77r/nyODg4qWL/vvow4noldf+XqnW2JDvLPM0zW+n25+Q1SOUltgmdpst50f77L3LQ2vWeW7imYX6Q+ke1tXfGVACRAC7RjsiMqXiPzcOHH3Cl+6/64ZyuaVQyKdp0t7edtnVt+268w7vX/4fv/v5qjff2gBgyeKFAP702DOXXPH99vbWer3e1tZy9+pHNg2MzO/vAXDzj+4aHBqd39eTWttWLt3y4zuPP/aId2+7dM19t7z08mtbbrmw3FKanpm98upbioW8iIaDxP7ImO/MggSVKzusSCBKUtl37914xSHLyy1F0SyCS1Ytdt4uaACdz0YUAL3y6hsvvfL6xNQ01HZ0tD627oWTvnjRX15+/YW//FUgcRyn9fSjx572pXO//fSzL/bO6+rt6Xzm2RfOvvCqDx9zWpIkcWyslTiKxidnr1z1w5defv2Z9S/96I6721pbUmtVNYrMbGXuiE+eduMtP//bm28vXbp4ZqZy190PHvKxz7/01zdLpWKmb6JR0vYG6bbKU0IQAEltsZg/9ODlpCJHHn3aA398oqO91doEmYKdwZjHb9ZwPNmtqE2tqBhjmFkBwzw7W4siIiI2MbtcS2VicrqlVOzoaCVgbGyiUq13drYZ5rDEIMLcXN09hInjOMpmYpjrc8n0zHRnZ1tLS6mepCMj43Eubi23uManbHux+afpoBUUiIgnp2eWv2+3e391Hanq6ofWHv7J0+b1tKf+8DAQGm4R6ugBEd33gqIAynpBFJlG0BxLEEXGppLaBIo4FzEZKxLOFIXSnpcmPfUlIhFxQzAMGJMkibXCxLl8rFlF/18+WS8TCxAaqkmRMzwwMvabO65ZcchytiKHfmDfIz+0/8joZBQ5RSF03LmZewhEOKjlZ+IYAbkzae7J4vlYVkZQIE0tgDiK41ysoqlIw0PCQDXoqdmXbv4KWNU0TZkpF+eiKLLWiljN/LVJD+KMaIonS+6nURyNTEx96IP7rjhkuRWh1FomeuvtTXsf/KlarZbPx66uFVhWqDAhq0tl4SlLN4I6Io2sK+PkmRyRpWKOQCjeuUVBNgP8rx3xZZ2mSzLmkRlQ4ym02TP98RdjUE/m4ih+7MHblm61SETZMIvoVosX3HLdhZVaPU3FGBOKgKFM4yWu7HXqNbKQnodsQ5nJGHJt0kzEnLWEhwFCFRB/NK4ht4eag7+IiNz9tNn9DVHSC/1Awy42XwgArrt3ZrZ206oLly3ZQkTYndcyhtPUHvr+fW697uszs7XaXBpHcXYyw8v/ntlk8RjBClwe72grZb+rIvQyNh6SjcMxZNPU6QHvGg3umxULwhL5YWhWvnbvomyEjSVzVhmZqF5PJiZnbl719SMO3T9NU2MMBeUVCL/K474H1372ixcPj0x0d7U5y0LW1kfIeljhvoOg6MrmOOk5igtjvnkvq11kA22yUM3O97nFCnAINHSlplc02sD9FX5JFQAZExEwOj7Z2VG+8ZrzjvzQAa79z6dczXCXWhsZ88ZbG8489zv3rH4kiuLWcoth15rlq4N+Qt6mHTplix5IHgHhAEEQXZokE83ckvAvnty0Ei5IKLkToQqA/e/w8AAXFsz/rgIQwVqZnqmkabri0P2uvOT0rZf++19N4z7ZLx/63f1/uuGWOx9f9/zUzGxkTBxHxrgI4nIsDTupkCBSbT7Y8M9GRTEIVxTuzKoP1FR0yQQbCXe5BZLm847v2PM0tUmSpFZay8U9d9/hlM984vBDD3DTca6TXUlNYOtdxXWKu6rOn597+d4H1z72xPrX/75xbGLKHa32ipnfvlB4C1PM5GE3rsZxJw8x/oWZAYRnhUJv5ta+Z1xVidjVW5SJ4eRljyIggAy3l1u2WbJgn/ftdtjB++228/YIOB/KaP7BAP4vDGH2SVGmjVkAAAAASUVORK5CYII=" style="width:100%;height:100%;object-fit:cover;"></div>
+ <span class="brand-name">LIVREX</span>
+ </div>
+ 
+ </div>
+ <div style="font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:4px;">Bonjour </div>
+ <div style="font-size:22px;font-weight:700;color:#fff;">Prêt à livrer ?</div>
+ </div>
+ <div class="earn-strip">
+ <div class="earn-card"><div class="earn-lbl">Aujourd'hui</div><div class="earn-val" id="todayEarn">CHF 0</div></div>
+ <div class="earn-card"><div class="earn-lbl">Livraisons</div><div class="earn-val" id="delivCount">0</div></div>
+ </div>
+ <div class="status-toggle">
+ <div style="display:flex;align-items:center;gap:10px;">
+ <div class="s-dot" id="sDot"></div>
+ <div><div style="font-size:14px;font-weight:700;" id="sText">En ligne</div><div style="font-size:11px;color:#9AA5BF;" id="sSub">Tu reçois des commandes</div></div>
+ </div>
+ <button class="toggle" id="toggleBtn" onclick="toggleStatus()"><div class="toggle-thumb"></div></button>
+ </div>
+ <div class="order-alert hidden" id="orderAlert" onclick="goTo('s2')">
+ <div class="alert-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
+ <div style="flex:1;"><div class="alert-title"> Nouvelle commande !</div><div class="alert-sub" id="alertSub">Appuie pour voir</div></div>
+ <div style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+ </div>
+ <div class="no-order" id="noOrder">
+ <div style="font-size:36px;margin-bottom:10px;"></div>
+ <div style="font-size:15px;font-weight:700;color:#0A0A0A;margin-bottom:5px;">En attente de commandes</div>
+ <div style="font-size:13px;color:#9AA5BF;line-height:1.5;">Dès qu'un client commande,<br>tu recevras une notification ici.</div>
+ <button class="refresh-sm" onclick="checkOrders()">
+ <svg id="refreshIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0f172a" stroke-width="2.5" stroke-linecap="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+ Vérifier les commandes
+ </button>
+ </div>
+ <div class="scroll" style="margin-top:16px;padding:0 20px;">
+ <div style="font-size:10px;font-weight:700;color:#9AA5BF;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">Dernières livraisons</div>
+ <div class="card" id="histList"><div style="padding:20px;text-align:center;color:#9AA5BF;font-size:13px;">Tes livraisons apparaîtront ici</div></div>
+ <div style="height:20px;"></div>
+ </div>
+</div>
+
+<!-- SCREEN 2 — NOUVELLE COMMANDE -->
+<div class="screen" id="s2">
+ <div class="sbar"><span class="sbar-t" id="clk2">9:41</span></div>
+ <div style="background:#0f172a;padding:8px 24px 22px;border-radius:0 0 28px 28px;flex-shrink:0;">
+ <div style="display:flex;align-items:center;gap:6px;margin-bottom:14px;background:rgba(255,255,255,0.15);border-radius:20px;padding:5px 12px;width:fit-content;">
+ <div style="width:6px;height:6px;border-radius:50%;background:#FCD34D;"></div>
+ <span style="font-size:11px;font-weight:700;color:#fff;">Nouvelle commande</span>
+ </div>
+ <div style="font-size:22px;font-weight:700;color:#fff;margin-bottom:4px;">Commande reçue !</div>
+ <div style="font-size:13px;color:rgba(255,255,255,0.6);">Accepte pour te rendre en boutique</div>
+ </div>
+ <div class="scroll" style="padding:16px 20px 0;">
+ <div style="background:#fff;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:12px;box-shadow:0 2px 12px rgba(20,50,168,0.06);border:1px solid rgba(20,50,168,0.06);">
+ <div id="s2storeIc" style="width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;background:#EEF2FF;color:#3D5AFE;">H&M</div>
+ <div style="flex:1;"><div style="font-size:15px;font-weight:700;" id="s2storeName">H&M</div><div style="font-size:12px;color:#9AA5BF;" id="s2storeAddr">Rue de Rive 14, Genève</div></div>
+ </div>
+ <div style="font-size:10px;font-weight:700;color:#9AA5BF;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">Articles demandés</div>
+ <div class="card" id="s2items" style="margin-bottom:14px;"></div>
+ <div style="font-size:10px;font-weight:700;color:#9AA5BF;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">Livrer à</div>
+ <div style="background:#fff;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:14px;box-shadow:0 2px 12px rgba(20,50,168,0.06);">
+ <div style="width:34px;height:34px;border-radius:10px;background:#EEF8FF;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0f172a" stroke-width="2.2" stroke-linecap="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+ <div><div style="font-size:10px;font-weight:700;color:#9AA5BF;letter-spacing:1px;text-transform:uppercase;margin-bottom:3px;">Adresse client</div><div style="font-size:14px;font-weight:600;" id="s2addr">—</div></div>
+ </div>
+ <div style="height:8px;"></div>
+ </div>
+ <div class="btm-fixed">
+ <button class="btn btn-blue" style="margin-bottom:10px;" id="acceptBtn" onclick="acceptOrder()">
+ <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+ Accepter et aller en boutique
+ </button>
+ <button class="btn btn-outline" onclick="refuseOrder()">Refuser</button>
+ </div>
+</div>
+
+<!-- SCREEN 3 — CHECK BOUTIQUE -->
+<div class="screen" id="s3">
+ <div class="sbar"><span class="sbar-t" id="clk3">9:41</span></div>
+ <div style="background:#0f172a;padding:8px 24px 22px;border-radius:0 0 28px 28px;flex-shrink:0;">
+ <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+ <div style="font-size:16px;font-weight:700;color:#fff;">Tu es en boutique</div>
+ <span style="background:rgba(255,255,255,0.15);color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;" id="s3badge">H&M</span>
+ </div>
+ <div style="font-size:13px;color:rgba(255,255,255,0.6);">Coche chaque article selon ce que tu trouves</div>
+ </div>
+ <div class="scroll" style="padding:16px 20px 0;">
+ <div class="prog-bar"><div class="prog-track"><div class="prog-fill" id="progFill" style="width:0%"></div></div><div class="prog-txt" id="progTxt">0/0 vérifié</div></div>
+ <div class="check-card" id="checkList" style="margin-bottom:14px;"></div>
+ <div style="background:#EEF2FF;border-radius:14px;padding:12px 14px;display:flex;gap:10px;margin-bottom:14px;border:1px solid #D6E0FF;">
+ <div style="width:3px;border-radius:2px;background:#0f172a;flex-shrink:0;"></div>
+ <div style="font-size:12px;color:#4A6ACA;line-height:1.5;">Appuie pour marquer <strong>disponible </strong> ou <strong>indisponible </strong></div>
+ </div>
+ <div style="height:8px;"></div>
+ </div>
+ <div class="btm-fixed">
+ <button class="btn btn-blue" onclick="sendVerif()">
+ <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+ Envoyer la vérification
+ </button>
+ </div>
+</div>
+
+<!-- SCREEN 4 — ATTENTE PAIEMENT -->
+<div class="screen" id="s4">
+ <div class="sbar"><span class="sbar-t" id="clk4">9:41</span></div>
+ <div style="background:#0f172a;padding:8px 24px 22px;border-radius:0 0 28px 28px;flex-shrink:0;">
+ <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:6px;">En attente du paiement</div>
+ <div style="font-size:13px;color:rgba(255,255,255,0.6);">Le client a 5 minutes pour confirmer.</div>
+ </div>
+ <div class="scroll" style="padding:16px 20px 0;">
+ <div class="card" style="margin-bottom:14px;" id="s4summary"></div>
+ <div class="card" style="margin-bottom:14px;padding:28px 20px;text-align:center;">
+ <div class="waiting-ring"></div>
+ <div style="font-size:16px;font-weight:700;color:#0A0A0A;margin-bottom:5px;">En attente...</div>
+ <div style="font-size:13px;color:#9AA5BF;">Le client consulte les résultats</div>
+ <div style="margin-top:10px;font-size:13px;font-weight:700;color:#D97706;">Timer : <span id="clientTimer">5:00</span></div>
+ </div>
+ <div style="height:8px;"></div>
+ </div>
+ <div class="btm-fixed">
+ <button class="btn btn-blue" onclick="checkPayment()">
+ <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+ Vérifier si le client a payé
+ </button>
+ </div>
+</div>
+
+<!-- SCREEN 5 — LIVRER -->
+<div class="screen" id="s5">
+ <div class="sbar"><span class="sbar-t" id="clk5">9:41</span></div>
+ <div style="background:#0f172a;padding:8px 24px 22px;border-radius:0 0 28px 28px;flex-shrink:0;">
+ <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:4px;"> Paiement reçu !</div>
+ <div style="font-size:13px;color:rgba(255,255,255,0.6);">Passe à la caisse et livre les articles.</div>
+ </div>
+ <div class="scroll" style="padding:16px 20px 0;">
+ <div class="earn-big"><div class="earn-big-lbl">Ta commission</div><div class="earn-big-val" id="s5earn">CHF —</div><div class="earn-big-sub">Versée après livraison confirmée</div></div>
+ <div style="font-size:10px;font-weight:700;color:#9AA5BF;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">Récapitulatif caisse</div>
+ <div class="card" style="margin-bottom:14px;">
+ <div class="c-row"><span class="c-l">À payer en caisse</span><span class="c-r blue" id="s5caisse">CHF —</span></div>
+ <div class="c-row"><span class="c-l">Ta commission</span><span class="c-r green" id="s5comm">CHF —</span></div>
+ </div>
+ <div style="font-size:10px;font-weight:700;color:#9AA5BF;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">Livrer à</div>
+ <div style="background:#fff;border-radius:16px;padding:14px 16px;display:flex;gap:12px;align-items:center;margin-bottom:14px;box-shadow:0 2px 12px rgba(20,50,168,0.06);">
+ <div style="width:34px;height:34px;border-radius:10px;background:#EEF8FF;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0f172a" stroke-width="2.2" stroke-linecap="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+ <div><div style="font-size:10px;font-weight:700;color:#9AA5BF;text-transform:uppercase;margin-bottom:3px;">Adresse</div><div style="font-size:14px;font-weight:600;" id="s5addr">—</div></div>
+ </div>
+ <div style="height:8px;"></div>
+ </div>
+ <div class="btm-fixed">
+ <button class="btn btn-green" onclick="confirmDelivery()">
+ <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+ Livraison effectuée 
+ </button>
+ </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://lfsrpuphrvwxhnonddru.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxmc3JwdXBocnZ3eGhub25kZHJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU5MTg4ODQsImV4cCI6MjA5MTQ5NDg4NH0.wPsTGQprpZDu7lJoVKLMwLn-FPS6-WWdF35kvTSyAy8';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const STORES = {
+ 'H&M':{ abbr:'H&M', bg:'#EEF2FF', c:'#3D5AFE', addr:'Rue de Rive 14, Genève' },
+ 'Zara':{ abbr:'ZARA', bg:'#FFF0F0', c:'#E53935', addr:'Rue de Rive 8, Genève' },
+ 'Globus':{ abbr:'GBL', bg:'#F0FDF4', c:'#16A34A', addr:'Rue du Rhône 48, Genève' },
+ 'Manor':{ abbr:'MNR', bg:'#FFFBEB', c:'#D97706', addr:'Rue Cornavin 6, Genève' },
+ 'Bongénie':{ abbr:'BNG', bg:'#F5F3FF', c:'#7C3AED', addr:'Rue du Marché 34, Genève' },
+};
+
+let isOnline = true;
+let currentOrder = null;
+let itemStates = {};
+let timerInterval = null;
+let clientTimerSec = 300;
+let totalEarned = 0;
+let totalDeliveries = 0;
+let channel;
+
+window.addEventListener('load', () => {
+ updateClock();
+ setInterval(updateClock, 30000);
+ // Récupérer commande en cours si app rechargée
+ const saved = localStorage.getItem('livex_current_order');
+ if (saved) {
+ try {
+ currentOrder = JSON.parse(saved);
+ populateScreen2(currentOrder);
+ showAlert(currentOrder);
+ } catch(e) {
+ localStorage.removeItem('livex_current_order');
+ }
+ }
+ subscribeToOrders();
+ checkOrders();
+});
+
+function updateClock() {
+ const d = new Date();
+ const t = String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+ ['clk1','clk2','clk3','clk4','clk5'].forEach(id => { const el = document.getElementById(id); if(el) el.textContent = t; });
+}
+
+function goTo(id) {
+ document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+ document.getElementById(id).classList.add('active');
+ window.scrollTo(0,0);
+}
+
+function toggleStatus() {
+ isOnline = !isOnline;
+ const btn = document.getElementById('toggleBtn');
+ const dot = document.getElementById('sDot');
+ if (isOnline) {
+ btn.classList.remove('off');
+ dot.style.background = '#4ADE80';
+ document.getElementById('sText').textContent = 'En ligne';
+ document.getElementById('sSub').textContent = 'Tu reçois des commandes';
+ subscribeToOrders();
+ } else {
+ btn.classList.add('off');
+ dot.style.background = '#E5E7EB';
+ document.getElementById('sText').textContent = 'Hors ligne';
+ document.getElementById('sSub').textContent = 'Tu ne reçois pas de commandes';
+ }
+}
+
+function subscribeToOrders() {
+ if (channel) { sb.removeChannel(channel); }
+ channel = sb.channel('new-orders')
+ .on('postgres_changes', { event:'INSERT', schema:'public', table:'commandes' }, (payload) => {
+ if (!isOnline) return;
+ currentOrder = payload.new;
+ showAlert(currentOrder);
+ })
+ .on('postgres_changes', { event:'UPDATE', schema:'public', table:'commandes' }, (payload) => {
+ if (currentOrder && payload.new.order_id === currentOrder.order_id) {
+ if (payload.new.status === 'paid') { showPaid(payload.new); }
+ }
+ })
+ .subscribe();
+}
+
+async function checkOrders() {
+ if (!isOnline) return;
+ const icon = document.getElementById('refreshIcon');
+ if (icon) { icon.style.animation = 'spin 1s linear infinite'; }
+ const { data } = await sb.from('commandes').select('*').eq('status','waiting').order('created_at', { ascending:false }).limit(1);
+ if (icon) { icon.style.animation = ''; }
+ if (data && data.length > 0) {
+ currentOrder = data[0];
+ showAlert(currentOrder);
+ }
+}
+
+function showAlert(order) {
+ const items = getItems(order);
+ document.getElementById('alertSub').textContent = order.store+' · '+items.length+' article(s)';
+ document.getElementById('orderAlert').classList.remove('hidden');
+ document.getElementById('noOrder').style.display = 'none';
+ // Pré-remplir screen 2 immédiatement
+ populateScreen2(order);
+}
+
+function populateScreen2(order) {
+ const s = STORES[order.store] || STORES['H&M'];
+ const ic = document.getElementById('s2storeIc');
+ ic.style.background = s.bg; ic.style.color = s.c; ic.textContent = s.abbr;
+ document.getElementById('s2storeName').textContent = order.store;
+ document.getElementById('s2storeAddr').textContent = s.addr;
+ const addrText = order.address || 'Non renseignée';
+ const noteText = order.note ? ' — ' + order.note : '';
+ document.getElementById('s2addr').textContent = addrText + noteText;
+ const items = getItems(order);
+ document.getElementById('s2items').innerHTML = items.length > 0
+ ? items.map((item,i) => `
+ <div class="row">
+ <div style="width:26px;height:26px;border-radius:7px;background:#EEF2FF;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#0f172a;flex-shrink:0;">${i+1}</div>
+ <div style="flex:1;font-size:14px;font-weight:500;color:#0A0A0A;">${item.name}</div>
+ </div>`).join('')
+ : '<div style="padding:16px 18px;font-size:13px;color:#9AA5BF;">Chargement des articles...</div>';
+}
+
+function getItems(order) {
+ let items = order.items || [];
+ if (typeof items === 'string') { try { items = JSON.parse(items); } catch(e) { items = []; } }
+ return items;
+}
+
+async function acceptOrder() {
+ if (!currentOrder) return;
+ const btn = document.getElementById('acceptBtn');
+ if (btn) { btn.textContent = 'Acceptation...'; btn.style.opacity = '0.7'; }
+ // Mettre à jour Supabase en "accepted"
+ await sb.from('commandes').update({ status:'accepted' }).eq('order_id', currentOrder.order_id);
+ // Sauvegarder dans localStorage pour résister à un rechargement
+ localStorage.setItem('livex_current_order', JSON.stringify(currentOrder));
+ document.getElementById('s3badge').textContent = currentOrder.store;
+ const items = getItems(currentOrder);
+ items.forEach(item => { itemStates[item.id] = true; });
+ renderChecklist();
+ goTo('s3');
+ if (btn) { btn.textContent = 'Accepter et aller en boutique'; btn.style.opacity = '1'; }
+}
+
+
+async function refuseOrder() {
+ if (currentOrder) {
+ await sb.from('commandes').update({ status:'refused' }).eq('order_id', currentOrder.order_id);
+ localStorage.removeItem('livex_current_order');
+ }
+ currentOrder = null;
+ itemStates = {};
+ document.getElementById('orderAlert').classList.add('hidden');
+ document.getElementById('noOrder').style.display = '';
+ goTo('s1');
+}
+
+function renderChecklist() {
+ const items = getItems(currentOrder);
+ document.getElementById('checkList').innerHTML = items.map(item => `
+ <div class="check-row" id="cr${item.id}" onclick="toggleItem(${item.id})">
+ <div class="check-toggle on" id="ct${item.id}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+ <div style="flex:1;"><div class="check-name" id="cn${item.id}">${item.name}</div><div style="font-size:11px;font-weight:600;color:#059669;margin-top:2px;" id="cs${item.id}">Disponible</div></div>
+ </div>`).join('');
+ updateProgress();
+}
+
+function toggleItem(id) {
+ itemStates[id] = !itemStates[id];
+ const ct = document.getElementById('ct'+id);
+ const cn = document.getElementById('cn'+id);
+ const cs = document.getElementById('cs'+id);
+ if (itemStates[id]) {
+ ct.className = 'check-toggle on';
+ ct.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>`;
+ cn.classList.remove('crossed'); cs.style.color = '#059669'; cs.textContent = 'Disponible';
+ } else {
+ ct.className = 'check-toggle off';
+ ct.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="3" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>`;
+ cn.classList.add('crossed'); cs.style.color = '#DC2626'; cs.textContent = 'Indisponible';
+ }
+ updateProgress();
+}
+
+function updateProgress() {
+ const items = getItems(currentOrder);
+ const total = items.length;
+ const done = Object.keys(itemStates).length;
+ const pct = total > 0 ? Math.round((done/total)*100) : 0;
+ document.getElementById('progFill').style.width = pct+'%';
+ document.getElementById('progTxt').textContent = done+'/'+total+' vérifié';
+}
+
+async function sendVerif() {
+ const items = getItems(currentOrder).map(item => ({ ...item, status: itemStates[item.id] ? 'ok' : 'no' }));
+ const conf = { items, timestamp: new Date().toISOString() };
+
+ const { error } = await sb.from('commandes').update({ confirmation: conf, status: 'confirmed' }).eq('order_id', currentOrder.order_id);
+ if (error) { alert('Erreur: '+error.message); return; }
+ // Sauvegarder la confirmation localement pour showPaid()
+ currentOrder.confirmation = conf;
+ localStorage.setItem('livex_current_order', JSON.stringify(currentOrder));
+
+ // Remplir écran 4
+ const avail = items.filter(i => i.status === 'ok');
+ const unavail = items.filter(i => i.status !== 'ok');
+ document.getElementById('s4summary').innerHTML = `
+ ${avail.map(i => `<div class="row"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0;"><path d="M20 6L9 17l-5-5"/></svg><div style="flex:1;font-size:14px;">${i.name}</div><span class="badge badge-green">Dispo</span></div>`).join('')}
+ ${unavail.map(i => `<div class="row"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0;"><path d="M18 6L6 18M6 6l12 12"/></svg><div style="flex:1;font-size:14px;text-decoration:line-through;color:#9AA5BF;">${i.name}</div><span class="badge badge-red">Indispo</span></div>`).join('')}`;
+
+ goTo('s4');
+ startClientTimer();
+}
+
+function startClientTimer() {
+ clientTimerSec = 300;
+ clearInterval(timerInterval);
+ timerInterval = setInterval(async () => {
+ clientTimerSec--;
+ const m = Math.floor(clientTimerSec/60);
+ const s = clientTimerSec%60;
+ const el = document.getElementById('clientTimer');
+ if (el) el.textContent = m+':'+String(s).padStart(2,'0');
+
+ // Vérifier le statut Supabase toutes les 5 secondes
+ if (clientTimerSec % 5 === 0 && currentOrder) {
+ try {
+ const { data } = await sb.from('commandes').select('status').eq('order_id', currentOrder.order_id).single();
+ if (data?.status === 'paid') {
+ clearInterval(timerInterval);
+ showPaid(data);
+ return;
+ }
+ if (data?.status === 'expired' || data?.status === 'cancelled') {
+ clearInterval(timerInterval);
+ showOrderCancelled(data.status);
+ return;
+ }
+ } catch(e) {}
+ }
+
+ if (clientTimerSec <= 0) {
+ clearInterval(timerInterval);
+ if (el) el.textContent = 'Expiré';
+ showOrderCancelled('expired');
+ }
+ }, 1000);
+}
+
+function showOrderCancelled(reason) {
+ // Remettre à zéro et retourner au dashboard
+ const msg = reason === 'expired'
+ ? 'Le client n\'a pas confirmé dans les 5 minutes. Commande annulée automatiquement.'
+ : 'Le client a annulé la commande.';
+
+ // Remplacer le contenu de s4 avec le message
+ const s4 = document.getElementById('s4');
+ const scroll = s4.querySelector('.scroll');
+ if (scroll) {
+ scroll.innerHTML = `
+ <div style="text-align:center;padding:40px 20px;">
+ <div style="font-size:48px;margin-bottom:16px;">⏰</div>
+ <div style="font-size:18px;font-weight:700;color:#0A0A0A;margin-bottom:8px;">${reason === 'expired' ? 'Temps écoulé' : 'Commande annulée'}</div>
+ <div style="font-size:14px;color:#9AA5BF;line-height:1.5;">${msg}</div>
+ </div>`;
+ }
+ const btm = s4.querySelector('.btm-fixed');
+ if (btm) {
+ btm.innerHTML = `<button class="btn btn-outline" onclick="backToDashboard()" style="background:transparent;border:1.5px solid #E0E8FF;color:#9AA5BF;">Retour au dashboard</button>`;
+ }
+}
+
+function backToDashboard() {
+ currentOrder = null;
+ itemStates = {};
+ document.getElementById('orderAlert').classList.add('hidden');
+ document.getElementById('noOrder').style.display = '';
+ goTo('s1');
+}
+
+async function checkPayment() {
+ const { data } = await sb.from('commandes').select('*').eq('order_id', currentOrder.order_id).single();
+ if (data?.status === 'paid') { showPaid(data); }
+ else { alert('Le client n\'a pas encore payé. Attends encore un peu !'); }
+}
+
+async function showPaid(data) {
+ clearInterval(timerInterval);
+ // Recharger la commande complète depuis Supabase si confirmation manquante
+ let conf = data.confirmation || (currentOrder && currentOrder.confirmation) || {};
+ if (!conf.items && currentOrder) {
+ const { data: fresh } = await sb.from('commandes').select('confirmation').eq('order_id', currentOrder.order_id).single();
+ if (fresh && fresh.confirmation) conf = fresh.confirmation;
+ }
+ const avail = (conf.items || []).filter(i => i.status === 'ok');
+ const commission = 20 + avail.length * 8;
+ const caisse = avail.length * 19;
+ document.getElementById('s5earn').textContent = 'CHF '+commission.toFixed(2);
+ document.getElementById('s5caisse').textContent = 'CHF '+caisse.toFixed(2);
+ document.getElementById('s5comm').textContent = 'CHF '+commission.toFixed(2);
+ document.getElementById('s5addr').textContent = currentOrder.address || 'Non renseignée';
+ goTo('s5');
+}
+
+async function confirmDelivery() {
+ const btn = document.querySelector('#s5 .btm-fixed .btn');
+ if (btn) { btn.textContent = 'Confirmation...'; btn.style.opacity = '0.7'; }
+ await sb.from('commandes').update({ status:'delivered' }).eq('order_id', currentOrder.order_id);
+ localStorage.removeItem('livex_current_order');
+ const conf = currentOrder.confirmation || {};
+ const avail = (conf.items || []).filter(i => i.status === 'ok');
+ const commission = 20 + avail.length * 8;
+ totalDeliveries++;
+ totalEarned += commission;
+ document.getElementById('todayEarn').textContent = 'CHF '+totalEarned;
+ document.getElementById('delivCount').textContent = totalDeliveries;
+ const histList = document.getElementById('histList');
+ if (histList.querySelector('div[style]')) histList.innerHTML = '';
+ const now = new Date();
+ const row = document.createElement('div');
+ row.className = 'hist-row';
+ row.innerHTML = `<div><div class="hist-store">${currentOrder.store}</div><div class="hist-time">Aujourd'hui à ${String(now.getHours()).padStart(2,'0')}h${String(now.getMinutes()).padStart(2,'0')}</div></div><div class="hist-earn">+CHF ${commission.toFixed(2)}</div>`;
+ histList.prepend(row);
+ currentOrder = null; itemStates = {};
+ document.getElementById('orderAlert').classList.add('hidden');
+ document.getElementById('noOrder').style.display = '';
+ goTo('s1');
+}
+</script>
+</body>
+</html>
