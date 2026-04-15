@@ -461,12 +461,16 @@ function populateScreen2(order) {
  document.getElementById('s2addr').textContent = addrText + noteText;
  const items = getItems(order);
  document.getElementById('s2items').innerHTML = items.length > 0
- ? items.map((item,i) => `
- <div class="row">
- <div style="width:26px;height:26px;border-radius:7px;background:#EEF2FF;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#0f172a;flex-shrink:0;">${i+1}</div>
- <div style="flex:1;font-size:14px;font-weight:500;color:#0A0A0A;">${item.name}</div>
- </div>`).join('')
- : '<div style="padding:16px 18px;font-size:13px;color:#9AA5BF;">Chargement des articles...</div>';
+    ? items.map((item,i) => `
+        <div style="border-bottom:1px solid #F0F4FF;padding:14px 18px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:${item.photo||item.url?'10px':'0'};">
+            <div style="width:26px;height:26px;border-radius:7px;background:#EEF2FF;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#0f172a;flex-shrink:0;">${i+1}</div>
+            <div style="flex:1;font-size:14px;font-weight:600;color:#0A0A0A;">${item.name||'Article'}</div>
+          </div>
+          ${item.photo ? `<img src="${item.photo}" style="width:100%;max-height:140px;object-fit:cover;border-radius:10px;margin-bottom:${item.url?'8px':'0'};">` : ''}
+          ${item.url ? `<a href="${item.url}" target="_blank" style="display:flex;align-items:center;gap:6px;font-size:12px;color:#0f172a;text-decoration:none;background:#EEF2FF;border-radius:8px;padding:7px 10px;word-break:break-all;">🔗 Voir l'article en ligne</a>` : ''}
+        </div>`).join('')
+    : '<div style="padding:16px 18px;font-size:13px;color:#9AA5BF;">Chargement des articles...</div>';
 }
 
 function getItems(order) {
@@ -651,10 +655,64 @@ async function showPaid(data) {
  goTo('s5');
 }
 
-async function confirmDelivery() {
+let delivPhotoData = null;
+
+function openPhotoModal() {
+  delivPhotoData = null;
+  document.getElementById('photoBtnTxt').textContent = 'Prendre une photo';
+  document.getElementById('delivPhotoWrap').style.display = 'none';
+  document.getElementById('photoConfirmBtn').style.display = 'none';
+  document.getElementById('photoModalOverlay').classList.add('on');
+}
+
+function closePhotoModal() {
+  document.getElementById('photoModalOverlay').classList.remove('on');
+}
+
+function takeDelivPhoto() {
+  document.getElementById('delivPhotoInput').click();
+}
+
+function handleDelivPhoto(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const MAX = 800;
+      let w = img.width, h = img.height;
+      if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      delivPhotoData = canvas.toDataURL('image/jpeg', 0.7);
+      document.getElementById('delivPhotoImg').src = delivPhotoData;
+      document.getElementById('delivPhotoWrap').style.display = 'block';
+      document.getElementById('photoConfirmBtn').style.display = 'flex';
+      document.getElementById('photoBtnTxt').textContent = 'Reprendre';
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+  e.target.value = '';
+}
+
+function removeDelivPhoto() {
+  delivPhotoData = null;
+  document.getElementById('delivPhotoImg').src = '';
+  document.getElementById('delivPhotoWrap').style.display = 'none';
+  document.getElementById('photoConfirmBtn').style.display = 'none';
+  document.getElementById('photoBtnTxt').textContent = 'Prendre une photo';
+}
+
+async function confirmDelivery(withPhoto = false) {
+  closePhotoModal();
  const btn = document.querySelector('#s5 .btm-fixed .btn');
  if (btn) { btn.textContent = 'Confirmation...'; btn.style.opacity = '0.7'; }
- await sb.from('commandes').update({ status:'delivered' }).eq('order_id', currentOrder.order_id);
+ const updateData = { status:'delivered' };
+ if (withPhoto && delivPhotoData) updateData.delivery_photo = delivPhotoData;
+ await sb.from('commandes').update(updateData).eq('order_id', currentOrder.order_id);
  localStorage.removeItem('livex_current_order');
  const conf = currentOrder.confirmation || {};
  const avail = (conf.items || []).filter(i => i.status === 'ok');
