@@ -517,7 +517,7 @@ function renderChecklist() {
  document.getElementById('checkList').innerHTML = items.map(item => `
  <div class="check-row" id="cr${item.id}">
    <div class="check-toggle on" id="ct${item.id}" onclick="toggleItem(${item.id})" style="flex-shrink:0;margin-top:4px;">
-     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg><path d="M20 6L9 17l-5-5"/></svg>
+     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>
    </div>
    <div style="flex:1;min-width:0;">
      <div class="check-name" id="cn${item.id}">${item.name}</div>
@@ -600,8 +600,8 @@ async function sendVerif() {
  localStorage.setItem('livex_current_order', JSON.stringify(currentOrder));
 
  // Remplir écran 4
- const avail = items.filter(i => i.status === 'ok');
- const unavail = items.filter(i => i.status !== 'ok');
+ const avail = itemsWithPrices.filter(i => i.status === 'ok');
+ const unavail = itemsWithPrices.filter(i => i.status !== 'ok');
  document.getElementById('s4summary').innerHTML = `
  ${avail.map(i => `<div class="row"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0;"><path d="M20 6L9 17l-5-5"/></svg><div style="flex:1;font-size:14px;">${i.name}</div><span class="badge badge-green">Dispo</span></div>`).join('')}
  ${unavail.map(i => `<div class="row"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0;"><path d="M18 6L6 18M6 6l12 12"/></svg><div style="flex:1;font-size:14px;text-decoration:line-through;color:#9AA5BF;">${i.name}</div><span class="badge badge-red">Indispo</span></div>`).join('')}`;
