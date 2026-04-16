@@ -288,6 +288,7 @@ const STORES = {
 let isOnline = true;
 let currentOrder = null;
 let itemStates = {};
+let itemPrices = {}; // Prix saisis par le coursier
 let timerInterval = null;
 let clientTimerSec = 300;
 let totalEarned = 0;
@@ -489,7 +490,10 @@ async function acceptOrder() {
  localStorage.setItem('livex_current_order', JSON.stringify(currentOrder));
  document.getElementById('s3badge').textContent = currentOrder.store;
  const items = getItems(currentOrder);
- items.forEach(item => { itemStates[item.id] = true; });
+ items.forEach(item => { 
+  itemStates[item.id] = true; 
+  itemPrices[item.id] = '';
+});
  renderChecklist();
  goTo('s3');
  if (btn) { btn.textContent = 'Accepter et aller en boutique'; btn.style.opacity = '1'; }
@@ -511,11 +515,39 @@ async function refuseOrder() {
 function renderChecklist() {
  const items = getItems(currentOrder);
  document.getElementById('checkList').innerHTML = items.map(item => `
- <div class="check-row" id="cr${item.id}" onclick="toggleItem(${item.id})">
- <div class="check-toggle on" id="ct${item.id}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg></div>
- <div style="flex:1;"><div class="check-name" id="cn${item.id}">${item.name}</div><div style="font-size:11px;font-weight:600;color:#059669;margin-top:2px;" id="cs${item.id}">Disponible</div></div>
+ <div class="check-row" id="cr${item.id}">
+   <div class="check-toggle on" id="ct${item.id}" onclick="toggleItem(${item.id})" style="flex-shrink:0;margin-top:4px;">
+     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg><path d="M20 6L9 17l-5-5"/></svg>
+   </div>
+   <div style="flex:1;min-width:0;">
+     <div class="check-name" id="cn${item.id}">${item.name}</div>
+     <div style="font-size:11px;font-weight:600;color:#059669;margin-top:2px;" id="cs${item.id}">Disponible</div>
+     <div id="priceWrap${item.id}" style="margin-top:8px;display:flex;align-items:center;gap:6px;">
+       <span style="font-size:12px;font-weight:600;color:#64748b;">CHF</span>
+       <input 
+         type="number" 
+         inputmode="decimal"
+         id="price${item.id}"
+         placeholder="0.00"
+         step="0.01"
+         min="0"
+         value="${itemPrices[item.id] || ''}"
+         style="border:1.5px solid #e2e8f0;border-radius:10px;padding:6px 10px;font-size:14px;font-weight:700;color:#0f172a;width:100px;font-family:inherit;outline:none;background:#f8fafc;"
+         onfocus="this.style.borderColor='#0f172a'"
+         onblur="this.style.borderColor='#e2e8f0'"
+         oninput="savePrice(${item.id}, this.value)"
+       />
+       <span id="priceOk${item.id}" style="display:none;color:#059669;font-size:16px;">✓</span>
+     </div>
+   </div>
  </div>`).join('');
  updateProgress();
+}
+
+function savePrice(id, val) {
+ itemPrices[id] = val;
+ const ok = document.getElementById('priceOk'+id);
+ if (ok) ok.style.display = val && parseFloat(val) > 0 ? 'inline' : 'none';
 }
 
 function toggleItem(id) {
@@ -545,8 +577,21 @@ function updateProgress() {
 }
 
 async function sendVerif() {
- const items = getItems(currentOrder).map(item => ({ ...item, status: itemStates[item.id] ? 'ok' : 'no' }));
- const conf = { items, timestamp: new Date().toISOString() };
+ // Vérifier que tous les articles dispo ont un prix
+ const items = getItems(currentOrder);
+ const dispoItems = items.filter(item => itemStates[item.id]);
+ const missingPrice = dispoItems.some(item => !itemPrices[item.id] || parseFloat(itemPrices[item.id]) <= 0);
+ if (missingPrice) {
+   alert('Merci de saisir le prix CHF pour chaque article disponible.');
+   return;
+ }
+ 
+ const itemsWithPrices = items.map(item => ({ 
+   ...item, 
+   status: itemStates[item.id] ? 'ok' : 'no',
+   price: itemStates[item.id] ? 'CHF ' + parseFloat(itemPrices[item.id]).toFixed(2) : null
+ }));
+ const conf = { items: itemsWithPrices, timestamp: new Date().toISOString() };
 
  const { error } = await sb.from('commandes').update({ confirmation: conf, status: 'confirmed' }).eq('order_id', currentOrder.order_id);
  if (error) { alert('Erreur: '+error.message); return; }
