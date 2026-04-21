@@ -118,7 +118,7 @@ html, body { width: 100%; height: 100%; font-family: -apple-system, BlinkMacSyst
  </div>
  
  </div>
- <div style="font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:4px;">Bonjour </div>
+ <div style="font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:4px;">Bonjour</div>
  <div style="font-size:22px;font-weight:700;color:#fff;">Prêt à livrer ?</div>
     <div id="pushIndicator" onclick="registerPush()" style="margin-top:10px;display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.12);border-radius:20px;padding:7px 14px;width:fit-content;cursor:pointer;">
       <div class="push-dot" style="width:7px;height:7px;border-radius:50%;background:#f59e0b;flex-shrink:0;"></div>
@@ -138,13 +138,13 @@ html, body { width: 100%; height: 100%; font-family: -apple-system, BlinkMacSyst
  </div>
  <div class="order-alert hidden" id="orderAlert" onclick="goTo('s2')">
  <div class="alert-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
- <div style="flex:1;"><div class="alert-title"> Nouvelle commande !</div><div class="alert-sub" id="alertSub">Appuie pour voir</div></div>
+ <div style="flex:1;"><div class="alert-title"> Commande disponible</div><div class="alert-sub" id="alertSub">Appuie pour consulter</div></div>
  <div style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
  </div>
  <div class="no-order" id="noOrder">
  <div style="font-size:36px;margin-bottom:10px;"></div>
  <div style="font-size:15px;font-weight:700;color:#0A0A0A;margin-bottom:5px;">En attente de commandes</div>
- <div style="font-size:13px;color:#9AA5BF;line-height:1.5;">Dès qu'un client commande,<br>tu recevras une notification ici.</div>
+ <div style="font-size:13px;color:#9AA5BF;line-height:1.5;">Dès qu'une commande arrive,<br>elle apparaîtra ici automatiquement.</div>
  <button class="refresh-sm" onclick="checkOrders()">
  <svg id="refreshIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0f172a" stroke-width="2.5" stroke-linecap="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
  Vérifier les commandes
@@ -165,8 +165,8 @@ html, body { width: 100%; height: 100%; font-family: -apple-system, BlinkMacSyst
  <div style="width:6px;height:6px;border-radius:50%;background:#FCD34D;"></div>
  <span style="font-size:11px;font-weight:700;color:#fff;">Nouvelle commande</span>
  </div>
- <div style="font-size:22px;font-weight:700;color:#fff;margin-bottom:4px;">Commande reçue !</div>
- <div style="font-size:13px;color:rgba(255,255,255,0.6);">Accepte pour te rendre en boutique</div>
+ <div style="font-size:22px;font-weight:700;color:#fff;margin-bottom:4px;">Nouvelle commande</div>
+ <div style="font-size:13px;color:rgba(255,255,255,0.6);">Un client attend, accepte pour te rendre en boutique.</div>
  </div>
  <div class="scroll" style="padding:16px 20px 0;">
  <div style="background:#fff;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:12px;box-shadow:0 2px 12px rgba(20,50,168,0.06);border:1px solid rgba(20,50,168,0.06);">
@@ -187,7 +187,7 @@ html, body { width: 100%; height: 100%; font-family: -apple-system, BlinkMacSyst
  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>
  Accepter et aller en boutique
  </button>
- <button class="btn btn-outline" onclick="refuseOrder()">Refuser</button>
+ <button class="btn btn-outline" onclick="if(confirm('Refuser cette commande ?')) refuseOrder()" style="color:#DC2626;border-color:#FCA5A5;">Refuser</button>
  </div>
 </div>
 
@@ -196,10 +196,10 @@ html, body { width: 100%; height: 100%; font-family: -apple-system, BlinkMacSyst
  <div class="sbar"><span class="sbar-t" id="clk3">9:41</span></div>
  <div style="background:#0f172a;padding:8px 24px 22px;border-radius:0 0 28px 28px;flex-shrink:0;">
  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
- <div style="font-size:16px;font-weight:700;color:#fff;">Tu es en boutique</div>
+ <div style="font-size:16px;font-weight:700;color:#fff;">Vérification en boutique</div>
  <span style="background:rgba(255,255,255,0.15);color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;" id="s3badge">H&M</span>
  </div>
- <div style="font-size:13px;color:rgba(255,255,255,0.6);">Coche chaque article selon ce que tu trouves</div>
+ <div style="font-size:13px;color:rgba(255,255,255,0.6);">Vérifie chaque article et saisis le prix CHF.</div>
  </div>
  <div class="scroll" style="padding:16px 20px 0;">
  <div class="prog-bar"><div class="prog-track"><div class="prog-fill" id="progFill" style="width:0%"></div></div><div class="prog-txt" id="progTxt">0/0 vérifié</div></div>
@@ -213,7 +213,7 @@ html, body { width: 100%; height: 100%; font-family: -apple-system, BlinkMacSyst
  <div class="btm-fixed">
  <button class="btn btn-blue" onclick="sendVerif()">
  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
- Envoyer la vérification
+ Confirmer les articles
  </button>
  </div>
 </div>
@@ -222,8 +222,8 @@ html, body { width: 100%; height: 100%; font-family: -apple-system, BlinkMacSyst
 <div class="screen" id="s4">
  <div class="sbar"><span class="sbar-t" id="clk4">9:41</span></div>
  <div style="background:#0f172a;padding:8px 24px 22px;border-radius:0 0 28px 28px;flex-shrink:0;">
- <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:6px;">En attente du paiement</div>
- <div style="font-size:13px;color:rgba(255,255,255,0.6);">Le client a 5 minutes pour confirmer.</div>
+ <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:6px;">En attente du paiement client</div>
+ <div style="font-size:13px;color:rgba(255,255,255,0.6);">Le client consulte les résultats et confirme le paiement.</div>
  </div>
  <div class="scroll" style="padding:16px 20px 0;">
  <div class="card" style="margin-bottom:14px;" id="s4summary"></div>
@@ -238,7 +238,7 @@ html, body { width: 100%; height: 100%; font-family: -apple-system, BlinkMacSyst
  <div class="btm-fixed">
  <button class="btn btn-blue" onclick="checkPayment()">
  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
- Vérifier si le client a payé
+ Actualiser le statut
  </button>
  </div>
 </div>
@@ -247,12 +247,12 @@ html, body { width: 100%; height: 100%; font-family: -apple-system, BlinkMacSyst
 <div class="screen" id="s5">
  <div class="sbar"><span class="sbar-t" id="clk5">9:41</span></div>
  <div style="background:#0f172a;padding:8px 24px 22px;border-radius:0 0 28px 28px;flex-shrink:0;">
- <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:4px;"> Paiement reçu !</div>
- <div style="font-size:13px;color:rgba(255,255,255,0.6);">Passe à la caisse et livre les articles.</div>
+ <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:4px;"> Paiement confirmé</div>
+ <div style="font-size:13px;color:rgba(255,255,255,0.6);">Passe en caisse, récupère les articles et livre le client.</div>
  </div>
  <div class="scroll" style="padding:16px 20px 0;">
- <div class="earn-big"><div class="earn-big-lbl">Ta commission</div><div class="earn-big-val" id="s5earn">CHF —</div><div class="earn-big-sub">Versée après livraison confirmée</div></div>
- <div style="font-size:10px;font-weight:700;color:#9AA5BF;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">Récapitulatif caisse</div>
+ <div class="earn-big"><div class="earn-big-lbl">Ta commission</div><div class="earn-big-val" id="s5earn">CHF —</div><div class="earn-big-sub">Versée après confirmation de livraison</div></div>
+ <div style="font-size:10px;font-weight:700;color:#9AA5BF;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">Récapitulatif</div>
  <div class="card" style="margin-bottom:14px;">
  <div class="c-row"><span class="c-l">À payer en caisse</span><span class="c-r blue" id="s5caisse">CHF —</span></div>
  <div class="c-row"><span class="c-l">Ta commission</span><span class="c-r green" id="s5comm">CHF —</span></div>
@@ -267,7 +267,7 @@ html, body { width: 100%; height: 100%; font-family: -apple-system, BlinkMacSyst
  <div class="btm-fixed">
  <button class="btn btn-green" onclick="openPhotoModal()">
  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>
- Livraison effectuée 
+ Confirmer la livraison 
  </button>
  </div>
 </div>
@@ -469,7 +469,7 @@ function populateScreen2(order) {
             <div style="flex:1;font-size:14px;font-weight:600;color:#0A0A0A;">${item.name||'Article'}</div>
           </div>
           ${item.photo ? `<img src="${item.photo}" style="width:100%;max-height:300px;object-fit:contain;border-radius:10px;background:#f8fafc;margin-bottom:${item.url?'8px':'0'};">` : ''}
-          ${item.url ? `<a href="${item.url}" target="_blank" style="display:flex;align-items:center;gap:6px;font-size:12px;color:#0f172a;text-decoration:none;background:#EEF2FF;border-radius:8px;padding:7px 10px;word-break:break-all;">🔗 Voir l'article en ligne</a>` : ''}
+          ${item.url ? `<a href="${item.url}" target="_blank" style="display:flex;align-items:center;gap:6px;font-size:12px;color:#0f172a;text-decoration:none;background:#EEF2FF;border-radius:8px;padding:7px 10px;word-break:break-all;"> Voir l'article en ligne</a>` : ''}
         </div>`).join('')
     : '<div style="padding:16px 18px;font-size:13px;color:#9AA5BF;">Chargement des articles...</div>';
 }
@@ -664,7 +664,7 @@ function showOrderCancelled(reason) {
  }
  const btm = s4.querySelector('.btm-fixed');
  if (btm) {
- btm.innerHTML = `<button class="btn btn-outline" onclick="backToDashboard()" style="background:transparent;border:1.5px solid #E0E8FF;color:#9AA5BF;">Retour au dashboard</button>`;
+ btm.innerHTML = `<button class="btn btn-outline" onclick="backToDashboard()" style="background:transparent;border:1.5px solid #E0E8FF;color:#9AA5BF;">Retour</button>`;
  }
 }
 
@@ -800,7 +800,7 @@ async function confirmDelivery(withPhoto = false) {
         <span id="photoBtnTxt">Prendre une photo</span>
       </button>
       <button class="photo-btn photo-btn-skip" onclick="confirmDelivery(false)">
-        Sans photo
+        Ignorer
       </button>
     </div>
 
