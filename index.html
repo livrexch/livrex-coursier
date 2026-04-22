@@ -8,8 +8,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-html, body { width: 100%; height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; background: #F5F7FF; color: #0A0A0A; overflow: hidden; }
-.screen { display: none; position: fixed; inset: 0; flex-direction: column; background: #F5F7FF; overflow: hidden; }
+html, body { width: 100%; height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; background: #F0F4FF; color: #0A0A0A; overflow: hidden; }
+.screen { display: none; position: fixed; inset: 0; flex-direction: column; background: #F0F4FF; overflow: hidden; }
 .screen.active { display: flex; }
 .sbar { background: #0f172a; padding: 14px 24px 8px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
 .sbar-t { font-size: 15px; font-weight: 600; color: #fff; }
@@ -21,7 +21,7 @@ html, body { width: 100%; height: 100%; font-family: -apple-system, BlinkMacSyst
 .btn-blue:active { opacity: 0.88; }
 .btn-outline { background: transparent; border: 1.5px solid #E0E8FF; color: #9AA5BF; }
 .btn-green { background: #ECFDF5; color: #059669; border: 1.5px solid #A7F3D0; }
-.row { display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-bottom: 1px solid #F5F7FF; }
+.row { display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-bottom: 1px solid #F0F4FF; }
 .row:last-child { border-bottom: none; }
 .badge { font-size: 11px; font-weight: 700; border-radius: 20px; padding: 3px 10px; }
 .badge-green { background: #ECFDF5; color: #059669; }
@@ -53,10 +53,10 @@ html, body { width: 100%; height: 100%; font-family: -apple-system, BlinkMacSyst
 .refresh-sm { display: flex; align-items: center; gap: 6px; background: #EEF2FF; border: none; border-radius: 10px; padding: 9px 16px; font-size: 13px; font-weight: 600; color: #0f172a; font-family: inherit; cursor: pointer; margin: 12px auto 0; }
 /* SCREEN 3 */
 .check-card { background: #fff; border-radius: 20px; overflow: hidden; box-shadow: 0 2px 16px rgba(20,50,168,0.06); border: 1px solid rgba(20,50,168,0.06); }
-.check-row { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-bottom: 1px solid #F5F7FF; cursor: pointer; user-select: none; transition: background 0.12s; }
+.check-row { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-bottom: 1px solid #F0F4FF; cursor: pointer; user-select: none; transition: background 0.12s; }
 .check-row:last-child { border-bottom: none; }
-.check-row:active { background: #FAFBFF; }
-.check-toggle { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; border: 2px solid #E0E8FF; background: #F5F7FF; }
+.check-row:active { background: #F0F4FF; }
+.check-toggle { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; border: 2px solid #E0E8FF; background: #F0F4FF; }
 .check-toggle.on { background: #0f172a; border-color: #0f172a; }
 .check-toggle.off { background: #FEF2F2; border-color: #FECACA; }
 .check-name { font-size: 15px; font-weight: 500; color: #0A0A0A; flex: 1; }
@@ -73,13 +73,13 @@ html, body { width: 100%; height: 100%; font-family: -apple-system, BlinkMacSyst
 .earn-big-val { font-size: 36px; font-weight: 900; color: #fff; }
 .earn-big-lbl { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.6); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
 .earn-big-sub { font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 4px; }
-.c-row { display: flex; justify-content: space-between; align-items: center; padding: 13px 18px; border-bottom: 1px solid #F5F7FF; }
+.c-row { display: flex; justify-content: space-between; align-items: center; padding: 13px 18px; border-bottom: 1px solid #F0F4FF; }
 .c-row:last-child { border-bottom: none; }
 .c-l { font-size: 13px; color: #9AA5BF; }
 .c-r { font-size: 14px; font-weight: 700; color: #0A0A0A; }
 .c-r.blue { color: #0f172a; }
 .c-r.green { color: #059669; }
-.hist-row { display: flex; align-items: center; justify-content: space-between; padding: 13px 18px; border-bottom: 1px solid #F5F7FF; }
+.hist-row { display: flex; align-items: center; justify-content: space-between; padding: 13px 18px; border-bottom: 1px solid #F0F4FF; }
 .hist-row:last-child { border-bottom: none; }
 .hist-store { font-size: 14px; font-weight: 600; color: #0A0A0A; }
 .hist-time { font-size: 11px; color: #9AA5BF; margin-top: 2px; }
@@ -229,7 +229,7 @@ html, body { width: 100%; height: 100%; font-family: -apple-system, BlinkMacSyst
  <div class="card" style="margin-bottom:14px;" id="s4summary"></div>
  <div class="card" style="margin-bottom:14px;padding:28px 20px;text-align:center;">
  <div class="waiting-ring"></div>
- <div style="font-size:16px;font-weight:700;color:#0A0A0A;margin-bottom:5px;">En attente...</div>
+ <div style="font-size:16px;font-weight:700;color:#0A0A0A;margin-bottom:5px;"><span style="display:inline-block;animation:pulse 1.5s ease-in-out infinite;opacity:0.7;">En attente du client...</span></div>
  <div style="font-size:13px;color:#9AA5BF;">Le client consulte les résultats</div>
  <div style="margin-top:10px;font-size:13px;font-weight:700;color:#D97706;">Timer : <span id="clientTimer">5:00</span></div>
  </div>
@@ -304,20 +304,17 @@ const VAPID_PUBLIC_KEY = 'BN4MNd5xon92RN8T0_Om59BveUt0Ybb9Z11RIxwy3424Av2-p8Mf5t
 async function registerPush() {
   // Vérifier support
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-    console.log('Push notifications non supportées');
-    return;
+        return;
   }
 
   try {
     // Enregistrer le service worker
     const reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
-    console.log('Service worker enregistré');
-
+    
     // Demander permission notifications
     const permission = await Notification.requestPermission();
     if (permission !== 'granted') {
-      console.log('Permission refusée');
-      return;
+            return;
     }
 
     // Souscrire au push
@@ -339,8 +336,7 @@ async function registerPush() {
       created_at: new Date().toISOString()
     }, { onConflict: 'endpoint' });
 
-    console.log('Push subscription enregistrée');
-    showPushStatus(true);
+        showPushStatus(true);
   } catch(err) {
     console.error('Erreur push:', err);
     showPushStatus(false);
@@ -388,6 +384,19 @@ function updateClock() {
  const d = new Date();
  const t = String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
  ['clk1','clk2','clk3','clk4','clk5'].forEach(id => { const el = document.getElementById(id); if(el) el.textContent = t; });
+}
+
+function showCourierError(msg) {
+  let errEl = document.getElementById('courierErr');
+  if (!errEl) {
+    errEl = document.createElement('div');
+    errEl.id = 'courierErr';
+    errEl.style.cssText = 'position:fixed;bottom:90px;left:16px;right:16px;background:#FEF2F2;color:#dc2626;border:1px solid #FCA5A5;border-radius:12px;padding:12px 16px;font-size:13px;font-weight:600;text-align:center;z-index:999;box-shadow:0 4px 16px rgba(220,38,38,0.15);';
+    document.body.appendChild(errEl);
+  }
+  errEl.textContent = msg;
+  errEl.style.display = 'block';
+  setTimeout(() => { if(errEl) errEl.style.display = 'none'; }, 4000);
 }
 
 function goTo(id) {
@@ -582,7 +591,7 @@ async function sendVerif() {
  const dispoItems = items.filter(item => itemStates[item.id]);
  const missingPrice = dispoItems.some(item => !itemPrices[item.id] || parseFloat(itemPrices[item.id]) <= 0);
  if (missingPrice) {
-   alert('Merci de saisir le prix CHF pour chaque article disponible.');
+   showCourierError('Merci de saisir le prix CHF pour chaque article disponible.');
    return;
  }
  
@@ -594,7 +603,7 @@ async function sendVerif() {
  const conf = { items: itemsWithPrices, timestamp: new Date().toISOString() };
 
  const { error } = await sb.from('commandes').update({ confirmation: conf, status: 'confirmed' }).eq('order_id', currentOrder.order_id);
- if (error) { alert('Erreur: '+error.message); return; }
+ if (error) { showCourierError('Erreur: ' + error.message); return; }
  // Sauvegarder la confirmation localement pour showPaid()
  currentOrder.confirmation = conf;
  localStorage.setItem('livex_current_order', JSON.stringify(currentOrder));
@@ -679,7 +688,7 @@ function backToDashboard() {
 async function checkPayment() {
  const { data } = await sb.from('commandes').select('*').eq('order_id', currentOrder.order_id).single();
  if (data?.status === 'paid') { showPaid(data); }
- else { alert('Le client n\'a pas encore payé. Attends encore un peu !'); }
+ else { showCourierError('Le client n\'a pas encore payé. Attends encore un peu.'); }
 }
 
 async function showPaid(data) {
